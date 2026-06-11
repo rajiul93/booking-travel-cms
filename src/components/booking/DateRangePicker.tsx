@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   addMonths,
@@ -35,6 +35,21 @@ interface DateRangePickerProps {
 
 const POPOVER_WIDTH_RANGE = 580
 const POPOVER_WIDTH_SINGLE = 300
+const MOBILE_BREAKPOINT = 640
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const update = () => setIsMobile(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  return isMobile
+}
 
 function formatRangeLabel(range: DateRange, mode: 'range' | 'single'): string {
   if (!range.start) return ''
@@ -102,12 +117,12 @@ function MonthGrid({
   }
 
   return (
-    <div className="min-w-[240px]">
+    <div className="w-full min-w-0">
       <p className="mb-3 text-center text-sm font-semibold text-slate-800">
         {format(month, 'MMMM, yyyy')}
       </p>
-      <div className="grid grid-cols-7 gap-y-1 text-center text-xs font-medium text-sky-600">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+      <div className="grid grid-cols-7 gap-y-1 text-center text-[11px] font-medium text-sky-600 sm:text-xs">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
           <span key={d} className="py-1">
             {d}
           </span>
@@ -134,7 +149,7 @@ function MonthGrid({
               onMouseEnter={() => onHover(day)}
               onMouseLeave={() => onHover(null)}
               className={cn(
-                'relative flex h-9 items-center justify-center text-sm transition',
+                'relative flex h-8 items-center justify-center text-sm transition sm:h-9',
                 !isSameMonth(day, month) && 'text-slate-300',
                 disabled && 'cursor-not-allowed text-slate-300',
                 !disabled && !inRange && 'text-slate-700 hover:bg-sky-50',
@@ -164,33 +179,22 @@ export function DateRangePicker({
   maxDate,
   className,
 }: DateRangePickerProps) {
+  const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
   const [viewMonth, setViewMonth] = useState(startOfMonth(value.start ?? new Date()))
   const [hoverDate, setHoverDate] = useState<Date | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  const popoverWidth = mode === 'range' ? POPOVER_WIDTH_RANGE : POPOVER_WIDTH_SINGLE
-
-  const updatePosition = useCallback(() => {
-    const trigger = triggerRef.current
-    if (!trigger) return
-
-    const rect = trigger.getBoundingClientRect()
-    const viewportPadding = 16
-    const centeredLeft = rect.left + rect.width / 2 - popoverWidth / 2
-    const left = Math.min(
-      Math.max(viewportPadding, centeredLeft),
-      window.innerWidth - popoverWidth - viewportPadding,
-    )
-
-    setPopoverPos({
-      top: rect.bottom + 12,
-      left,
-    })
-  }, [popoverWidth])
+  const modalMaxWidth =
+    mode === 'range'
+      ? isMobile
+        ? 360
+        : POPOVER_WIDTH_RANGE
+      : isMobile
+        ? 320
+        : POPOVER_WIDTH_SINGLE
 
   useEffect(() => {
     setMounted(true)
@@ -198,18 +202,12 @@ export function DateRangePicker({
 
   useEffect(() => {
     if (!open) return
-
-    updatePosition()
-
-    const handleReposition = () => updatePosition()
-    window.addEventListener('resize', handleReposition)
-    window.addEventListener('scroll', handleReposition, true)
-
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     return () => {
-      window.removeEventListener('resize', handleReposition)
-      window.removeEventListener('scroll', handleReposition, true)
+      document.body.style.overflow = previousOverflow
     }
-  }, [open, updatePosition])
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -257,77 +255,86 @@ export function DateRangePicker({
   }
 
   const toggleOpen = () => {
-    setOpen((prev) => {
-      const next = !prev
-      if (next) {
-        requestAnimationFrame(updatePosition)
-      }
-      return next
-    })
+    setOpen((prev) => !prev)
   }
 
   const label = formatRangeLabel(value, mode)
+  const showSecondMonth = mode === 'range' && !isMobile
+
+  const calendarBody = (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setViewMonth((m) => subMonths(m, 1))}
+        className="shrink-0 rounded-full p-1.5 text-sky-600 hover:bg-sky-50"
+        aria-label="Previous month"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-6 sm:flex-row sm:gap-8">
+        <MonthGrid
+          month={viewMonth}
+          range={value}
+          hoverDate={hoverDate}
+          minDate={minDate}
+          maxDate={maxDate}
+          mode={mode}
+          onSelect={handleSelect}
+          onHover={setHoverDate}
+        />
+        {showSecondMonth && (
+          <MonthGrid
+            month={addMonths(viewMonth, 1)}
+            range={value}
+            hoverDate={hoverDate}
+            minDate={minDate}
+            maxDate={maxDate}
+            mode={mode}
+            onSelect={handleSelect}
+            onHover={setHoverDate}
+          />
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setViewMonth((m) => addMonths(m, 1))}
+        className="shrink-0 rounded-full p-1.5 text-sky-600 hover:bg-sky-50"
+        aria-label="Next month"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </div>
+  )
 
   const popover =
     open && mounted
       ? createPortal(
-          <div
-            ref={popoverRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Date picker"
-            style={{
-              position: 'fixed',
-              top: popoverPos.top,
-              left: popoverPos.left,
-              width: popoverWidth,
-              zIndex: 9999,
-            }}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xl"
-          >
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setViewMonth((m) => subMonths(m, 1))}
-                className="shrink-0 rounded-full p-1.5 text-sky-600 hover:bg-sky-50"
-                aria-label="Previous month"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-
-              <div className="flex min-w-0 flex-1 flex-col gap-6 sm:flex-row sm:gap-8">
-                <MonthGrid
-                  month={viewMonth}
-                  range={value}
-                  hoverDate={hoverDate}
-                  minDate={minDate}
-                  maxDate={maxDate}
-                  mode={mode}
-                  onSelect={handleSelect}
-                  onHover={setHoverDate}
-                />
-                {mode === 'range' && (
-                  <MonthGrid
-                    month={addMonths(viewMonth, 1)}
-                    range={value}
-                    hoverDate={hoverDate}
-                    minDate={minDate}
-                    maxDate={maxDate}
-                    mode={mode}
-                    onSelect={handleSelect}
-                    onHover={setHoverDate}
-                  />
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setViewMonth((m) => addMonths(m, 1))}
-                className="shrink-0 rounded-full p-1.5 text-sky-600 hover:bg-sky-50"
-                aria-label="Next month"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+          <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4">
+            <button
+              type="button"
+              aria-label="Close calendar"
+              className="absolute inset-0 bg-black/45"
+              onClick={() => setOpen(false)}
+            />
+            <div
+              ref={popoverRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Date picker"
+              style={{ maxWidth: modalMaxWidth }}
+              className="relative z-[9999] w-full max-h-[min(90vh,560px)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+            >
+              <p className="mb-3 text-center text-sm font-semibold text-slate-700">
+                {mode === 'range' ? 'Select check-in and check-out' : 'Select a date'}
+              </p>
+              {value.start && mode === 'range' && !value.end && (
+                <p className="mb-3 text-center text-xs text-sky-600">
+                  Check-in: {format(value.start, 'MMM d, yyyy')} — now pick check-out
+                </p>
+              )}
+              {calendarBody}
             </div>
           </div>,
           document.body,
@@ -342,7 +349,7 @@ export function DateRangePicker({
         onClick={toggleOpen}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="w-full text-left text-sm text-slate-800 outline-none"
+        className="w-full truncate text-left text-sm text-slate-800 outline-none"
       >
         {label || <span className="text-slate-400">{placeholder}</span>}
       </button>

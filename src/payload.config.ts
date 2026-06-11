@@ -8,10 +8,13 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Countries } from './collections/Countries'
+import { TourCategories } from './collections/TourCategories'
 import { Tours } from './collections/Tours'
 import { Bookings } from './collections/Bookings'
 import { BlogPosts } from './collections/BlogPosts'
 import { Pages } from './collections/Pages'
+import { SiteSettings } from './globals/SiteSettings'
 import { r2StoragePlugin } from './lib/storage/r2'
 
 const filename = fileURLToPath(import.meta.url)
@@ -27,7 +30,8 @@ export default buildConfig({
       titleSuffix: '— Dream Tourism Admin',
     },
   },
-  collections: [Users, Media, Tours, Bookings, BlogPosts, Pages],
+  collections: [Users, Media, Countries, TourCategories, Tours, Bookings, BlogPosts, Pages],
+  globals: [SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

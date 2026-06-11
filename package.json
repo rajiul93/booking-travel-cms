@@ -13,7 +13,11 @@
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "db:migrate-countries": "node scripts/migrate-countries.mjs",
+    "db:migrate-tour-categories": "node scripts/migrate-tour-categories.mjs",
+    "db:migrate-hero-slider": "node scripts/migrate-hero-slider.mjs",
+    "db:cleanup": "node scripts/cleanup-orphan-tables.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1066.0",

@@ -3,18 +3,13 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { Search } from 'lucide-react'
+import type { TourCategoryOption } from '@/lib/cms/queries'
 
-const CATEGORIES = [
-  { value: '', label: 'All Categories' },
-  { value: 'adventure', label: 'Adventure' },
-  { value: 'cultural', label: 'Cultural' },
-  { value: 'food-wine', label: 'Food & Wine' },
-  { value: 'nature', label: 'Nature' },
-  { value: 'city-tours', label: 'City Tours' },
-  { value: 'day-trips', label: 'Day Trips' },
-]
+interface TourFiltersProps {
+  categories: TourCategoryOption[]
+}
 
-export function TourFilters() {
+export function TourFilters({ categories }: TourFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -49,9 +44,10 @@ export function TourFilters() {
         onChange={(e) => updateParams('category', e.target.value)}
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none"
       >
-        {CATEGORIES.map((cat) => (
-          <option key={cat.value} value={cat.value}>
-            {cat.label}
+        <option value="">All Categories</option>
+        {categories.map((category) => (
+          <option key={category.slug} value={category.slug}>
+            {category.name}
           </option>
         ))}
       </select>

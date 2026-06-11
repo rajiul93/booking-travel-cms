@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { getTours, getMediaUrl } from '@/lib/cms/queries'
+import { getTours, getMediaUrl, getTourCategories, getCountryNameByCode } from '@/lib/cms/queries'
 import { TourCard } from '@/components/tours/TourCard'
 import { TourFilters } from '@/components/tours/TourFilters'
 import { buildMetadata } from '@/lib/seo/metadata'
@@ -17,6 +17,7 @@ export const metadata: Metadata = buildMetadata({
 interface ToursPageProps {
   searchParams: Promise<{
     q?: string
+    country?: string
     category?: string
     page?: string
     checkIn?: string
@@ -27,11 +28,16 @@ interface ToursPageProps {
 export default async function ToursPage({ searchParams }: ToursPageProps) {
   const params = await searchParams
   const page = Number(params.page) || 1
-  const result = await getTours({
-    q: params.q,
-    category: params.category,
-    page,
-  })
+  const [result, categories, countryLabel] = await Promise.all([
+    getTours({
+      q: params.q,
+      country: params.country,
+      category: params.category,
+      page,
+    }),
+    getTourCategories(),
+    params.country ? getCountryNameByCode(params.country) : Promise.resolve(null),
+  ])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -40,16 +46,21 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
         <p className="mt-3 text-lg text-slate-600">
           Explore unforgettable experiences with live Bókun availability and instant booking.
         </p>
+        {countryLabel && (
+          <p className="mt-2 text-sm font-medium text-sky-600">
+            Showing tours in {countryLabel}
+          </p>
+        )}
         {params.checkIn && params.checkOut && (
           <p className="mt-2 text-sm font-medium text-sky-600">
-            Showing tours for {params.checkIn} to {params.checkOut} — select a tour to pick your time slot.
+            Travel dates: {params.checkIn} to {params.checkOut} — select a tour to pick your time slot.
           </p>
         )}
       </div>
 
       <div className="mt-8">
         <Suspense fallback={<div className="h-14 animate-pulse rounded-2xl bg-slate-200" />}>
-          <TourFilters />
+          <TourFilters categories={categories} />
         </Suspense>
       </div>
 

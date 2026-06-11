@@ -8,7 +8,7 @@ export const Tours: CollectionConfig = {
   slug: 'tours',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['coverImage', 'title', 'bokunActivityId', 'featured', 'status', 'updatedAt'],
+    defaultColumns: ['editLink', 'coverImage', 'title', 'country', 'bokunActivityId', 'featured', 'status', 'updatedAt'],
   },
   access: {
     create: staffCanManageTours,
@@ -25,6 +25,17 @@ export const Tours: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      name: 'editLink',
+      type: 'ui',
+      label: 'Edit',
+      admin: {
+        components: {
+          Cell: '@/components/admin/CollectionEditLinkCell#CollectionEditLinkCell',
+          Field: '@/components/admin/EmptyUiField#EmptyUiField',
+        },
+      },
+    },
     {
       name: 'title',
       type: 'text',
@@ -141,22 +152,32 @@ export const Tours: CollectionConfig = {
       },
     },
     {
+      name: 'country',
+      type: 'relationship',
+      relationTo: 'countries',
+      required: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Select a country from Admin → Countries.',
+      },
+    },
+    {
       name: 'location',
       type: 'text',
       required: true,
+      admin: {
+        description: 'City or region, e.g. "Rome", "Makkah"',
+      },
     },
     {
       name: 'categories',
-      type: 'select',
+      type: 'relationship',
+      relationTo: 'tour-categories',
       hasMany: true,
-      options: [
-        { label: 'Adventure', value: 'adventure' },
-        { label: 'Cultural', value: 'cultural' },
-        { label: 'Food & Wine', value: 'food-wine' },
-        { label: 'Nature', value: 'nature' },
-        { label: 'City Tours', value: 'city-tours' },
-        { label: 'Day Trips', value: 'day-trips' },
-      ],
+      admin: {
+        description: 'Select categories from Admin → Tour Categories.',
+      },
     },
     {
       name: 'highlights',

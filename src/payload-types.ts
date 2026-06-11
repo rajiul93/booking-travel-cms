@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    countries: Country;
+    'tour-categories': TourCategory;
     tours: Tour;
     bookings: Booking;
     'blog-posts': BlogPost;
@@ -82,6 +84,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    countries: CountriesSelect<false> | CountriesSelect<true>;
+    'tour-categories': TourCategoriesSelect<false> | TourCategoriesSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
@@ -95,8 +99,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'it') | ('en' | 'it')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'site-settings': SiteSetting;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+  };
   locale: 'en' | 'it';
   widgets: {
     collections: CollectionsWidget;
@@ -201,6 +209,41 @@ export interface Media {
   };
 }
 /**
+ * Single place to manage countries for tours and the homepage location picker.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "countries".
+ */
+export interface Country {
+  id: number;
+  /**
+   * e.g. Italy, Saudi Arabia
+   */
+  name: string;
+  /**
+   * ISO 2-letter code used for flags and search, e.g. IT, SA
+   */
+  code: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage tour categories used in tour create/edit and the /tours page filter.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tour-categories".
+ */
+export interface TourCategory {
+  id: number;
+  name: string;
+  /**
+   * Lowercase only. Spaces are converted to hyphens automatically.
+   */
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tours".
  */
@@ -252,8 +295,18 @@ export interface Tour {
    * e.g. "3 hours", "Full day"
    */
   duration: string;
+  /**
+   * Select a country from Admin → Countries.
+   */
+  country: number | Country;
+  /**
+   * City or region, e.g. "Rome", "Makkah"
+   */
   location: string;
-  categories?: ('adventure' | 'cultural' | 'food-wine' | 'nature' | 'city-tours' | 'day-trips')[] | null;
+  /**
+   * Select categories from Admin → Tour Categories.
+   */
+  categories?: (number | TourCategory)[] | null;
   highlights?:
     | {
         text: string;
@@ -458,6 +511,14 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'countries';
+        value: number | Country;
+      } | null)
+    | ({
+        relationTo: 'tour-categories';
+        value: number | TourCategory;
+      } | null)
+    | ({
         relationTo: 'tours';
         value: number | Tour;
       } | null)
@@ -596,6 +657,26 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "countries_select".
+ */
+export interface CountriesSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tour-categories_select".
+ */
+export interface TourCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tours_select".
  */
 export interface ToursSelect<T extends boolean = true> {
@@ -616,6 +697,7 @@ export interface ToursSelect<T extends boolean = true> {
   rating?: T;
   reviewCount?: T;
   duration?: T;
+  country?: T;
   location?: T;
   categories?: T;
   highlights?:
@@ -786,6 +868,76 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * Add one or more images for the homepage hero slider. Drag rows to reorder.
+   */
+  heroSlides?:
+    | {
+        image: number | Media;
+        /**
+         * Short description for accessibility and SEO.
+         */
+        alt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  heroSliderAutoplay?: boolean | null;
+  heroSliderInterval?: number | null;
+  heroEyebrow?: string | null;
+  heroTitle?: string | null;
+  heroSubtitle?: string | null;
+  testimonials?:
+    | {
+        name: string;
+        location: string;
+        text: string;
+        rating: number;
+        id?: string | null;
+      }[]
+    | null;
+  ctaTitle?: string | null;
+  ctaSubtitle?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  heroSlides?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        id?: T;
+      };
+  heroSliderAutoplay?: T;
+  heroSliderInterval?: T;
+  heroEyebrow?: T;
+  heroTitle?: T;
+  heroSubtitle?: T;
+  testimonials?:
+    | T
+    | {
+        name?: T;
+        location?: T;
+        text?: T;
+        rating?: T;
+        id?: T;
+      };
+  ctaTitle?: T;
+  ctaSubtitle?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -5,6 +5,16 @@
   --color-brand-50: #f0f9ff;
   --color-brand-600: #0284c7;
   --color-brand-700: #0369a1;
+  --animate-hero-ken-burns: hero-ken-burns 12s ease-out forwards;
+}
+
+@keyframes hero-ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
 }
 
 html {

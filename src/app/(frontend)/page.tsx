@@ -1,69 +1,61 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getFeaturedTours, getPublishedBlogPosts, getMediaUrl, getTourLocations } from '@/lib/cms/queries'
+import {
+  getFeaturedTours,
+  getPublishedBlogPosts,
+  getMediaUrl,
+  getHomepageDestinations,
+  getSiteSettings,
+} from '@/lib/cms/queries'
 import { TourCard } from '@/components/tours/TourCard'
 import { HeroBookingSearch } from '@/components/home/HeroBookingSearch'
+import { HeroImageSlider } from '@/components/home/HeroImageSlider'
 import { ArrowRight, Star } from 'lucide-react'
 
 export const revalidate = 60
 
-const testimonials = [
-  {
-    name: 'Sarah M.',
-    location: 'London, UK',
-    text: 'An absolutely magical experience. The guides were knowledgeable and every detail was perfectly organized.',
-    rating: 5,
-  },
-  {
-    name: 'Marco R.',
-    location: 'Milan, Italy',
-    text: 'Booking was seamless and the tour exceeded our expectations. Highly recommend Dream Tourism!',
-    rating: 5,
-  },
-  {
-    name: 'Emily K.',
-    location: 'New York, USA',
-    text: 'From booking to the final goodbye, everything was professional and unforgettable.',
-    rating: 5,
-  },
-]
-
 export default async function HomePage() {
-  const [featuredTours, blogPosts, locations] = await Promise.all([
+  const [featuredTours, blogPosts, destinations, site] = await Promise.all([
     getFeaturedTours(6),
     getPublishedBlogPosts(3),
-    getTourLocations(),
+    getHomepageDestinations(),
+    getSiteSettings(),
   ])
 
   return (
     <>
-      <section className="relative min-h-[520px] bg-slate-900 text-white sm:min-h-[600px]">
-        <div className="absolute inset-0 overflow-hidden">
-          <Image
-            src="https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=2000&q=80"
-            alt="Scenic travel destination"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
+      <section className="relative isolate min-h-[520px] overflow-hidden bg-slate-900 text-white sm:min-h-[600px]">
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <HeroImageSlider
+            slides={site.heroSlides}
+            autoplay={site.heroSliderAutoplay}
+            interval={site.heroSliderInterval}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25" />
         </div>
 
         <div className="relative z-10 mx-auto flex min-h-[520px] max-w-7xl flex-col justify-end px-4 pb-10 pt-24 sm:min-h-[600px] sm:px-6 sm:pb-14 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">
-              dreamtourism.it
-            </p>
-            <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Discover Italy&apos;s Most Unforgettable Tours
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
-              Pick your dates, browse live availability, and book your time slot with secure checkout.
-            </p>
-          </div>
+          {(site.heroEyebrow || site.heroTitle || site.heroSubtitle) && (
+            <div className="max-w-3xl">
+              {site.heroEyebrow && (
+                <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">
+                  {site.heroEyebrow}
+                </p>
+              )}
+              {site.heroTitle && (
+                <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                  {site.heroTitle}
+                </h1>
+              )}
+              {site.heroSubtitle && (
+                <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
+                  {site.heroSubtitle}
+                </p>
+              )}
+            </div>
+          )}
 
-          <HeroBookingSearch locations={locations} />
+          <HeroBookingSearch destinations={destinations} className="mt-8 sm:mt-10" />
         </div>
       </section>
 
@@ -99,30 +91,32 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-3xl font-bold text-slate-900">What Travelers Say</h2>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <blockquote
-                key={t.name}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-6"
-              >
-                <div className="flex gap-1">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="mt-4 text-sm leading-relaxed text-slate-600">&ldquo;{t.text}&rdquo;</p>
-                <footer className="mt-4 text-sm font-semibold text-slate-900">
-                  {t.name}
-                  <span className="block font-normal text-slate-500">{t.location}</span>
-                </footer>
-              </blockquote>
-            ))}
+      {site.testimonials.length > 0 && (
+        <section className="bg-white py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-center text-3xl font-bold text-slate-900">What Travelers Say</h2>
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {site.testimonials.map((t) => (
+                <blockquote
+                  key={`${t.name}-${t.location}`}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                >
+                  <div className="flex gap-1">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-slate-600">&ldquo;{t.text}&rdquo;</p>
+                  <footer className="mt-4 text-sm font-semibold text-slate-900">
+                    {t.name}
+                    <span className="block font-normal text-slate-500">{t.location}</span>
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {blogPosts.docs.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -157,22 +151,23 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className="bg-sky-600 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold">Ready for Your Next Adventure?</h2>
-          <p className="mx-auto mt-4 max-w-xl text-sky-100">
-            Browse our collection of tours and book your experience with live availability
-            and secure Stripe checkout.
-          </p>
-          <Link
-            href="/tours"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
-          >
-            Start Exploring
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
+      {(site.ctaTitle || site.ctaSubtitle) && (
+        <section className="bg-sky-600 py-16 text-white">
+          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+            {site.ctaTitle && <h2 className="text-3xl font-bold">{site.ctaTitle}</h2>}
+            {site.ctaSubtitle && (
+              <p className="mx-auto mt-4 max-w-xl text-sky-100">{site.ctaSubtitle}</p>
+            )}
+            <Link
+              href="/tours"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+            >
+              Start Exploring
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   )
 }
