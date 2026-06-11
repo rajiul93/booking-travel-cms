@@ -40,6 +40,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.bokun.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
       ...getR2ImagePatterns(),
     ],
     localPatterns: [

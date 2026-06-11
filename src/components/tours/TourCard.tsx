@@ -13,6 +13,8 @@ interface TourCardProps {
   reviewCount?: number | null
   coverImageUrl?: string | null
   priceFrom?: number | null
+  checkIn?: string
+  checkOut?: string
 }
 
 export function TourCard({
@@ -25,10 +27,17 @@ export function TourCard({
   reviewCount,
   coverImageUrl,
   priceFrom,
+  checkIn,
+  checkOut,
 }: TourCardProps) {
+  const hrefParams = new URLSearchParams()
+  if (checkIn) hrefParams.set('checkIn', checkIn)
+  if (checkOut) hrefParams.set('checkOut', checkOut)
+  const query = hrefParams.toString()
+
   return (
     <Link
-      href={`/tours/${slug}`}
+      href={query ? `/tours/${slug}?${query}` : `/tours/${slug}`}
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-lg"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">

@@ -19,6 +19,8 @@ interface ToursPageProps {
     q?: string
     category?: string
     page?: string
+    checkIn?: string
+    checkOut?: string
   }>
 }
 
@@ -38,6 +40,11 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
         <p className="mt-3 text-lg text-slate-600">
           Explore unforgettable experiences with live Bókun availability and instant booking.
         </p>
+        {params.checkIn && params.checkOut && (
+          <p className="mt-2 text-sm font-medium text-sky-600">
+            Showing tours for {params.checkIn} to {params.checkOut} — select a tour to pick your time slot.
+          </p>
+        )}
       </div>
 
       <div className="mt-8">
@@ -58,6 +65,8 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
             rating={tour.rating}
             reviewCount={tour.reviewCount}
             coverImageUrl={getMediaUrl(tour.coverImage)}
+            checkIn={params.checkIn}
+            checkOut={params.checkOut}
           />
         ))}
       </div>

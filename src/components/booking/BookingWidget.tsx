@@ -1,7 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { parseISO, startOfDay } from 'date-fns'
 import { formatCurrency } from '@/lib/utils'
+import { DateRangePicker, type DateRange } from '@/components/booking/DateRangePicker'
 import { Minus, Plus, Calendar, Clock, Loader2 } from 'lucide-react'
 
 interface BokunAvailabilitySlot {
@@ -35,10 +37,31 @@ interface BookingWidgetProps {
   tourId: number
   bokunActivityId: number
   tourTitle: string
+  initialCheckIn?: string
+  initialCheckOut?: string
 }
 
-export function BookingWidget({ tourId, bokunActivityId, tourTitle }: BookingWidgetProps) {
-  const [selectedDate, setSelectedDate] = useState('')
+function parseDateParam(value?: string): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const parsed = parseISO(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+export function BookingWidget({
+  tourId,
+  bokunActivityId,
+  tourTitle,
+  initialCheckIn,
+  initialCheckOut,
+}: BookingWidgetProps) {
+  const initialDate = parseDateParam(initialCheckIn)
+  const [dateRange, setDateRange] = useState<DateRange>({
+    start: initialDate,
+    end: initialDate,
+  })
+  const selectedDate = dateRange.start
+    ? dateRange.start.toISOString().split('T')[0]
+    : ''
   const [slots, setSlots] = useState<BokunAvailabilitySlot[]>([])
   const [selectedSlot, setSelectedSlot] = useState<BokunAvailabilitySlot | null>(null)
   const [adults, setAdults] = useState(2)
@@ -185,25 +208,52 @@ export function BookingWidget({ tourId, bokunActivityId, tourTitle }: BookingWid
     }
   }
 
-  const minDate = new Date().toISOString().split('T')[0]
+  const travelStart = useMemo(() => parseDateParam(initialCheckIn), [initialCheckIn])
+  const maxDate = useMemo(() => parseDateParam(initialCheckOut), [initialCheckOut])
+  const minDate = useMemo(() => {
+    const today = startOfDay(new Date())
+    if (travelStart && travelStart > today) return travelStart
+    return today
+  }, [travelStart])
+
+  const handleDateChange = (range: DateRange) => {
+    if (!range.start) {
+      setDateRange({ start: null, end: null })
+      return
+    }
+
+    if (maxDate && range.start > maxDate) {
+      setDateRange({ start: maxDate, end: maxDate })
+      return
+    }
+
+    setDateRange({ start: range.start, end: range.start })
+  }
 
   return (
     <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
       <h2 className="text-lg font-bold text-slate-900">Book {tourTitle}</h2>
       <p className="mt-1 text-sm text-slate-500">Live availability · Secure checkout</p>
+      {initialCheckIn && initialCheckOut && (
+        <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-700">
+          Travel window: {initialCheckIn} to {initialCheckOut}
+        </p>
+      )}
 
       <div className="mt-6 space-y-5">
-        <div>
+        <div className="rounded-lg border border-slate-200 px-3 py-2">
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <Calendar className="h-4 w-4" />
             Select Date
           </label>
-          <input
-            type="date"
-            min={minDate}
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+          <DateRangePicker
+            value={dateRange}
+            onChange={handleDateChange}
+            mode="single"
+            minDate={minDate}
+            maxDate={maxDate ?? undefined}
+            placeholder="Pick a booking date"
+            className="mt-2"
           />
         </div>
 

@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getFeaturedTours, getPublishedBlogPosts, getMediaUrl } from '@/lib/cms/queries'
+import { getFeaturedTours, getPublishedBlogPosts, getMediaUrl, getTourLocations } from '@/lib/cms/queries'
 import { TourCard } from '@/components/tours/TourCard'
+import { HeroBookingSearch } from '@/components/home/HeroBookingSearch'
 import { ArrowRight, Star } from 'lucide-react'
 
 export const revalidate = 60
@@ -28,43 +29,41 @@ const testimonials = [
 ]
 
 export default async function HomePage() {
-  const [featuredTours, blogPosts] = await Promise.all([
+  const [featuredTours, blogPosts, locations] = await Promise.all([
     getFeaturedTours(6),
     getPublishedBlogPosts(3),
+    getTourLocations(),
   ])
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-sky-900 via-sky-800 to-slate-900 text-white">
-        <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10" />
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-sky-300">
+      <section className="relative min-h-[520px] bg-slate-900 text-white sm:min-h-[600px]">
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=2000&q=80"
+            alt="Scenic travel destination"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+        </div>
+
+        <div className="relative z-10 mx-auto flex min-h-[520px] max-w-7xl flex-col justify-end px-4 pb-10 pt-24 sm:min-h-[600px] sm:px-6 sm:pb-14 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">
               dreamtourism.it
             </p>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Discover Italy&apos;s Most Unforgettable Tours
             </h1>
-            <p className="mt-6 text-lg leading-relaxed text-sky-100">
-              Curated adventures, cultural experiences, and day trips with live
-              availability and instant confirmation.
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
+              Pick your dates, browse live availability, and book your time slot with secure checkout.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href="/tours"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-sky-900 transition hover:bg-sky-50"
-              >
-                Explore Tours
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Learn More
-              </Link>
-            </div>
           </div>
+
+          <HeroBookingSearch locations={locations} />
         </div>
       </section>
 

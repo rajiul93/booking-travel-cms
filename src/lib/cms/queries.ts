@@ -90,6 +90,32 @@ export async function getTours(params: {
   }
 }
 
+export async function getTourLocations(): Promise<string[]> {
+  try {
+    const payload = await getPayloadSafe()
+    const result = await payload.find({
+      collection: 'tours',
+      where: { status: { equals: 'published' } },
+      limit: 200,
+      depth: 0,
+      select: {
+        location: true,
+      },
+    })
+
+    const locations = new Set<string>()
+    for (const tour of result.docs) {
+      if (tour.location?.trim()) {
+        locations.add(tour.location.trim())
+      }
+    }
+
+    return Array.from(locations).sort((a, b) => a.localeCompare(b))
+  } catch {
+    return []
+  }
+}
+
 export async function getPublishedBlogPosts(limit = 3) {
   try {
     const payload = await getPayloadSafe()

@@ -12,6 +12,10 @@ export const revalidate = 60
 
 interface TourPageProps {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{
+    checkIn?: string
+    checkOut?: string
+  }>
 }
 
 export async function generateMetadata({ params }: TourPageProps): Promise<Metadata> {
@@ -30,8 +34,9 @@ export async function generateMetadata({ params }: TourPageProps): Promise<Metad
   })
 }
 
-export default async function TourDetailPage({ params }: TourPageProps) {
+export default async function TourDetailPage({ params, searchParams }: TourPageProps) {
   const { slug } = await params
+  const { checkIn, checkOut } = await searchParams
   const tour = await getTourBySlug(slug)
 
   if (!tour) {
@@ -196,6 +201,8 @@ export default async function TourDetailPage({ params }: TourPageProps) {
               tourId={tour.id}
               bokunActivityId={tour.bokunActivityId}
               tourTitle={tour.title}
+              initialCheckIn={checkIn}
+              initialCheckOut={checkOut}
             />
           </div>
         </div>
