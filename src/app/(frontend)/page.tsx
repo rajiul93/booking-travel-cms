@@ -24,8 +24,8 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative isolate min-h-[520px] overflow-hidden bg-slate-900 text-white sm:min-h-[600px]">
-        <div className="pointer-events-none absolute inset-0 z-0">
+      <section className="relative isolate min-h-[520px] bg-slate-900 text-white sm:min-h-[600px]">
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <HeroImageSlider
             slides={site.heroSlides}
             autoplay={site.heroSliderAutoplay}
