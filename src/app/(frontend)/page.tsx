@@ -1,26 +1,27 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import {
-  getFeaturedTours,
-  getPublishedBlogPosts,
-  getMediaUrl,
-  getHomepageDestinations,
-  getSiteSettings,
-} from '@/lib/cms/queries'
+import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { getHomepageData, getMediaUrl } from '@/lib/cms/queries'
 import { TourCard } from '@/components/tours/TourCard'
 import { HeroBookingSearch } from '@/components/home/HeroBookingSearch'
 import { HeroImageSlider } from '@/components/home/HeroImageSlider'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { TourGridSkeleton } from '@/components/ui/Skeleton'
+import { buildMetadata, buildWebsiteJsonLd } from '@/lib/seo/metadata'
 import { ArrowRight, Star } from 'lucide-react'
 
-export const revalidate = 60
+export const revalidate = 300
 
-export default async function HomePage() {
-  const [featuredTours, blogPosts, destinations, site] = await Promise.all([
-    getFeaturedTours(6),
-    getPublishedBlogPosts(3),
-    getHomepageDestinations(),
-    getSiteSettings(),
-  ])
+export const metadata: Metadata = buildMetadata({
+  title: 'Dream Tourism — Unforgettable Tours in Italy',
+  description:
+    'Discover curated tours and authentic experiences across Italy. Book adventures with live availability and secure payments.',
+  path: '/',
+})
+
+async function HomeContent() {
+  const { featuredTours, blogPosts, destinations, site } = await getHomepageData()
 
   return (
     <>
@@ -65,12 +66,16 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold text-slate-900">Featured Tours</h2>
             <p className="mt-2 text-slate-600">Hand-picked experiences for every traveler</p>
           </div>
-          <Link href="/tours" className="hidden text-sm font-semibold text-sky-600 hover:text-sky-700 sm:block">
+          <Link
+            href="/tours"
+            prefetch
+            className="hidden text-sm font-semibold text-sky-600 hover:text-sky-700 sm:block"
+          >
             View all tours →
           </Link>
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredTours.docs.map((tour) => (
+          {featuredTours.map((tour) => (
             <TourCard
               key={tour.id}
               slug={tour.slug}
@@ -84,7 +89,7 @@ export default async function HomePage() {
             />
           ))}
         </div>
-        {featuredTours.docs.length === 0 && (
+        {featuredTours.length === 0 && (
           <p className="text-center text-slate-500">
             Featured tours will appear here once published in the admin panel.
           </p>
@@ -118,14 +123,15 @@ export default async function HomePage() {
         </section>
       )}
 
-      {blogPosts.docs.length > 0 && (
+      {blogPosts.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-slate-900">From the Blog</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {blogPosts.docs.map((post) => (
+            {blogPosts.map((post) => (
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
+                prefetch
                 className="group overflow-hidden rounded-2xl border border-slate-200 bg-white"
               >
                 <div className="relative aspect-video bg-slate-100">
@@ -160,6 +166,7 @@ export default async function HomePage() {
             )}
             <Link
               href="/tours"
+              prefetch
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
             >
               Start Exploring
@@ -168,6 +175,26 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+    </>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <>
+      <JsonLd data={buildWebsiteJsonLd()} />
+      <Suspense
+        fallback={
+          <>
+            <section className="relative min-h-[520px] bg-slate-900 sm:min-h-[600px]" />
+            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+              <TourGridSkeleton count={6} />
+            </section>
+          </>
+        }
+      >
+        <HomeContent />
+      </Suspense>
     </>
   )
 }

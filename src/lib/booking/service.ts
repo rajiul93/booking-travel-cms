@@ -1,5 +1,5 @@
-import { getPayload } from 'payload'
-import config from '@payload-config'
+import { getPayloadCached } from '@/lib/cms/payload'
+import { getTourBySlugCached } from '@/lib/cms/queries'
 import { getBokunClient } from '@/lib/bokun/client'
 import { getStripeClient } from '@/lib/stripe/client'
 import { sendBookingConfirmationEmail } from '@/lib/email/send'
@@ -15,7 +15,7 @@ function generateBookingReference(): string {
 }
 
 export async function getTourById(tourId: number | string) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   return payload.findByID({
     collection: 'tours',
     id: tourId,
@@ -24,23 +24,7 @@ export async function getTourById(tourId: number | string) {
 }
 
 export async function getTourBySlug(slug: string) {
-  try {
-    const payload = await getPayload({ config })
-    const result = await payload.find({
-      collection: 'tours',
-      where: {
-        and: [
-          { slug: { equals: slug } },
-          { status: { equals: 'published' } },
-        ],
-      },
-      depth: 2,
-      limit: 1,
-    })
-    return result.docs[0] ?? null
-  } catch {
-    return null
-  }
+  return getTourBySlugCached(slug)
 }
 
 export function calculatePricing(
@@ -83,7 +67,7 @@ export function calculatePricing(
 }
 
 export async function reserveBooking(input: ReserveBookingInput) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   const bokun = getBokunClient()
   const tour = await getTourById(input.tourId)
 
@@ -151,7 +135,7 @@ export async function reserveBooking(input: ReserveBookingInput) {
 }
 
 export async function createCheckoutSession(bookingId: number | string) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   const stripe = getStripeClient()
   const siteUrl = getSiteUrl()
 
@@ -213,7 +197,7 @@ export async function confirmBookingPayment(
   stripeSessionId: string,
   paymentIntentId?: string,
 ) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   const bokun = getBokunClient()
 
   const booking = await payload.findByID({
@@ -269,7 +253,7 @@ export async function confirmBookingPayment(
 }
 
 export async function releaseBookingReservation(bookingId: number | string, reason: string) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   const bokun = getBokunClient()
 
   const booking = await payload.findByID({
@@ -306,7 +290,7 @@ export async function releaseBookingReservation(bookingId: number | string, reas
 }
 
 export async function processStripeRefund(bookingId: number | string, refundId: string) {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadCached()
   const bokun = getBokunClient()
 
   const booking = await payload.findByID({

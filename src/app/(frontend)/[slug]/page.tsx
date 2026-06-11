@@ -4,7 +4,7 @@ import { getPageBySlug, getMediaUrl } from '@/lib/cms/queries'
 import { RichTextContent } from '@/components/cms/RichTextContent'
 import { buildMetadata } from '@/lib/seo/metadata'
 
-export const revalidate = 60
+export const revalidate = 300
 
 const RESERVED_SLUGS = new Set([
   'admin',

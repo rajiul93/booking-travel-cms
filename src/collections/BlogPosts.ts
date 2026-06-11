@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
 import { isDocumentPublished, sanitizeOptionalDate } from '@/lib/payload/helpers'
 import { applySlugToData, slugFieldAdmin, validateSlugValue } from '@/lib/payload/slug'
+import { revalidateAfterBlogChange } from '@/lib/payload/revalidateHooks'
 import { hasRichTextContent } from '@/lib/validation/richText'
 
 export const BlogPosts: CollectionConfig = {
@@ -33,6 +34,7 @@ export const BlogPosts: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [revalidateAfterBlogChange],
   },
   fields: [
     {

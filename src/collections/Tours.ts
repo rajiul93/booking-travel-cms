@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
 import { isDocumentPublished } from '@/lib/payload/helpers'
 import { applySlugToData, slugFieldAdmin, validateSlugValue } from '@/lib/payload/slug'
+import { revalidateAfterTourChange } from '@/lib/payload/revalidateHooks'
 import { hasRichTextContent } from '@/lib/validation/richText'
 
 export const Tours: CollectionConfig = {
@@ -23,6 +24,7 @@ export const Tours: CollectionConfig = {
     beforeValidate: [
       ({ data }) => applySlugToData(data as Record<string, unknown> | undefined),
     ],
+    afterChange: [revalidateAfterTourChange],
   },
   fields: [
     {

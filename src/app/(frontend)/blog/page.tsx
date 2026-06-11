@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { getPublishedBlogPosts, getMediaUrl } from '@/lib/cms/queries'
 import { buildMetadata } from '@/lib/seo/metadata'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export const metadata: Metadata = buildMetadata({
   title: 'Blog',

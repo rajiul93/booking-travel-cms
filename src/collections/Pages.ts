@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
 import { applySlugToData, slugFieldAdmin, validateSlugValue } from '@/lib/payload/slug'
+import { revalidateAfterPageChange } from '@/lib/payload/revalidateHooks'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -21,6 +22,7 @@ export const Pages: CollectionConfig = {
     beforeValidate: [
       ({ data }) => applySlugToData(data as Record<string, unknown> | undefined),
     ],
+    afterChange: [revalidateAfterPageChange],
   },
   fields: [
     {

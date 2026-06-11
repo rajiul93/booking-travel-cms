@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
+import { revalidateAfterContentChange } from '@/lib/payload/revalidateHooks'
 
 export const Countries: CollectionConfig = {
   slug: 'countries',
@@ -23,6 +24,7 @@ export const Countries: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [revalidateAfterContentChange],
   },
   fields: [
     {

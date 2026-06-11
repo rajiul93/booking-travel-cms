@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
 import { applySlugToData, slugFieldAdmin, validateSlugValue } from '@/lib/payload/slug'
+import { revalidateAfterContentChange } from '@/lib/payload/revalidateHooks'
 
 export const TourCategories: CollectionConfig = {
   slug: 'tour-categories',
@@ -23,6 +24,7 @@ export const TourCategories: CollectionConfig = {
     beforeValidate: [
       ({ data }) => applySlugToData(data as Record<string, unknown> | undefined),
     ],
+    afterChange: [revalidateAfterContentChange],
   },
   fields: [
     {

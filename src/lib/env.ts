@@ -14,7 +14,7 @@ const serverEnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_'),
   RESEND_API_KEY: z.string().startsWith('re_'),
   RESEND_FROM_EMAIL: z.string().email(),
-  CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
+  CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 })
 
 const clientEnvSchema = z.object({

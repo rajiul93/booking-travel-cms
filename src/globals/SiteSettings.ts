@@ -1,5 +1,6 @@
 import type { GlobalConfig } from 'payload'
 import { staffCanManageTours } from '@/access/roles'
+import { revalidateAfterSiteSettingsChange } from '@/lib/payload/revalidateHooks'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -7,6 +8,9 @@ export const SiteSettings: GlobalConfig = {
   access: {
     read: () => true,
     update: staffCanManageTours,
+  },
+  hooks: {
+    afterChange: [revalidateAfterSiteSettingsChange],
   },
   fields: [
     {

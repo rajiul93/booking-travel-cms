@@ -7,12 +7,13 @@ export function withCache<T>(
   keyParts: string[],
   fn: CacheFn<T>,
   revalidate?: number,
+  tags?: string[],
 ): CacheFn<T> {
   const ttl = revalidate ?? getServerEnv().CACHE_TTL_SECONDS
 
   return unstable_cache(fn, keyParts, {
     revalidate: ttl,
-    tags: keyParts,
+    tags: tags ?? keyParts,
   })
 }
 

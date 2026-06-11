@@ -2,13 +2,18 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { getTourBySlug } from '@/lib/booking/service'
-import { getMediaUrl } from '@/lib/cms/queries'
+import { getMediaUrl, getPublishedTourSlugs } from '@/lib/cms/queries'
 import { BookingWidget } from '@/components/booking/BookingWidget'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { buildMetadata, buildTourJsonLd } from '@/lib/seo/metadata'
+import { buildMetadata, buildTourJsonLd, buildBreadcrumbJsonLd } from '@/lib/seo/metadata'
 import { Star, MapPin, Clock, Check, X } from 'lucide-react'
 
-export const revalidate = 60
+export const revalidate = 300
+
+export async function generateStaticParams() {
+  const slugs = await getPublishedTourSlugs()
+  return slugs.map((slug) => ({ slug }))
+}
 
 interface TourPageProps {
   params: Promise<{ slug: string }>
@@ -59,6 +64,13 @@ export default async function TourDetailPage({ params, searchParams }: TourPageP
           reviewCount: tour.reviewCount,
           coverImageUrl: coverUrl,
         })}
+      />
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: 'Home', path: '/' },
+          { name: 'Tours', path: '/tours' },
+          { name: tour.title, path: `/tours/${tour.slug}` },
+        ])}
       />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
