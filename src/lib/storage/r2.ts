@@ -1,4 +1,12 @@
 import { s3Storage } from '@payloadcms/storage-s3'
+import { normalizeSlug } from '@/lib/payload/slug'
+
+function encodeObjectKey(key: string): string {
+  return key
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')
+}
 
 function getR2Endpoint(): string {
   const accountId = process.env.R2_ACCOUNT_ID
@@ -23,14 +31,17 @@ export function r2StoragePlugin() {
 
   return s3Storage({
     enabled: isR2Enabled(),
+    alwaysInsertFields: true,
+    acl: 'public-read',
     collections: {
       media: {
         disableLocalStorage: true,
-        disablePayloadAccessControl: true,
         prefix: 'media',
+        // Keep Payload file proxy for admin thumbnails (/api/media/file/...).
+        // staticHandler streams from R2 when disablePayloadAccessControl is false.
         generateFileURL: ({ filename, prefix }) => {
           const key = prefix ? `${prefix}/${filename}` : filename
-          return `${publicUrl}/${key}`
+          return `${publicUrl}/${encodeObjectKey(key)}`
         },
       },
     },

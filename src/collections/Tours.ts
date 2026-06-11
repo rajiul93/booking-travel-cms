@@ -8,7 +8,7 @@ export const Tours: CollectionConfig = {
   slug: 'tours',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'bokunActivityId', 'featured', 'status', 'updatedAt'],
+    defaultColumns: ['coverImage', 'title', 'bokunActivityId', 'featured', 'status', 'updatedAt'],
   },
   access: {
     create: staffCanManageTours,
@@ -108,8 +108,12 @@ export const Tours: CollectionConfig = {
       name: 'coverImage',
       type: 'upload',
       relationTo: 'media',
+      displayPreview: true,
       admin: {
         description: 'Required before publishing — used on tour cards and detail hero.',
+        components: {
+          Cell: '@/components/admin/CoverImageCell#CoverImageCell',
+        },
       },
     },
     {
